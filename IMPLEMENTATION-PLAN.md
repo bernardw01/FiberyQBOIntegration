@@ -30,16 +30,16 @@
 | 1.8 | Resolve: Generic QBO Item/Service name/ID | :white_check_mark: | Bernard | 12. Open Questions | v0.2 | P0 | Resolved: QBO Item ID `3` |
 | 1.9 | Resolve: QBO Company ID (realm ID) | :white_check_mark: | Bernard | 12. Open Questions | v0.2 | P0 | Resolved: Realm ID `9130354334258356` |
 | 1.10 | Resolve: Invoice Request naming convention | :white_check_mark: | Bernard | 12. Open Questions | v0.2 | P0 | Resolved: "INV - {Revenue Milestone Name}" |
-| 1.11 | Create Make.com scenario with QBO connection | :clipboard: | Claude | 8. Make.com Scenario | v0.1 | P0 | Unblocked — ready to start |
-| 1.12 | Configure Make.com webhook endpoint | :clipboard: | Claude | 8. Make.com Scenario | v0.1 | P0 | Part of 1.11 |
-| 1.13 | Define & test webhook payload/response contract | :clipboard: | Claude | 8. Payload/Response Schema | v0.2 | P0 | Test with sample POST before wiring to Fibery |
+| 1.11 | Create Make.com scenario with QBO connection | :white_check_mark: | Claude | 8. Make.com Scenario | v0.1 | P0 | Scenario ID: 4590134. QBO connection needs OAuth auth in Make.com UI. |
+| 1.12 | Configure Make.com webhook endpoint | :white_check_mark: | Claude | 8. Make.com Scenario | v0.1 | P0 | Webhook URL: `https://hook.us2.make.com/j6jonu9ejwxik4umui290bbw5yf25qs7` |
+| 1.13 | Define & test webhook payload/response contract | :clipboard: | Claude | 8. Payload/Response Schema | v0.2 | P0 | Blueprint wired. Needs QBO OAuth connection before testing. |
 | 1.14 | Initialize GitHub repo + PRD | :white_check_mark: | Claude | — | v0.1 | — | github.com/bernardw01/FiberyQBOIntegration |
 | 1.15 | Add README | :white_check_mark: | Claude | — | — | — | Links to PRD |
 
 ### Phase 1 Summary
-- **Complete**: 12 of 15 tasks
-- **No blockers** — all open questions resolved
-- **Remaining**: Make.com scenario setup (1.11–1.13) — ready to start
+- **Complete**: 14 of 15 tasks
+- **Remaining**: 1.13 — test webhook contract end-to-end (requires QBO OAuth connection in Make.com UI)
+- **User action needed**: Open Make.com scenario "Fibery QBO Invoice Creation" → click the QBO module → add QBO connection (OAuth login to Intuit)
 
 ---
 
@@ -158,15 +158,17 @@ graph TD
 
 | Phase | Total Tasks | Complete | In Progress | Blocked | Not Started |
 |---|---|---|---|---|---|
-| Phase 1: Foundation | 15 | 12 | 0 | 0 | 3 |
+| Phase 1: Foundation | 15 | 14 | 0 | 1 (QBO OAuth) | 0 |
 | Phase 2: Core Integration | 11 | 0 | 0 | 0 | 11 |
 | Phase 3: Polish & Guardrails | 9 | 0 | 0 | 0 | 9 |
 | Phase 4: Enhancements | 5 | 0 | 0 | 0 | 5 |
-| **Total** | **40** | **12** | **0** | **0** | **28** |
+| **Total** | **40** | **14** | **0** | **1** | **25** |
 
 ### Current Blockers
 
-None — all questions resolved. Ready to proceed with Make.com scenario setup (1.11–1.13) and Phase 2.
+| Blocker | Blocks | Action Needed |
+|---|---|---|
+| QBO OAuth connection | 1.13, Phase 2 | Bernard: Open Make.com → scenario "Fibery QBO Invoice Creation" → click QBO module → Add Connection → sign in to Intuit/QBO |
 
 ### Recently Resolved
 
@@ -176,3 +178,5 @@ None — all questions resolved. Ready to proceed with Make.com scenario setup (
 | Generic QBO Item/Service | Item ID `3` | 2026-03-31 |
 | Invoice Request naming | "INV - {Revenue Milestone Name}" | 2026-03-31 |
 | QBO Realm ID | `9130354334258356` | 2026-03-31 |
+| Make.com scenario | Created — ID 4590134, webhook + QBO CreateInvoice + WebhookRespond | 2026-03-31 |
+| Webhook endpoint | `https://hook.us2.make.com/j6jonu9ejwxik4umui290bbw5yf25qs7` | 2026-03-31 |

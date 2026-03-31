@@ -10,6 +10,7 @@
 | 0.4 | 2026-03-31 | Bernard + Claude | Added [Implementation Plan](IMPLEMENTATION-PLAN.md) with task-level traceability to PRD sections, versions, and priorities; dependency graph; progress tracking |
 | 0.5 | 2026-03-31 | Bernard + Claude | Resolved 3 of 4 open questions: QBO Item ID = 3, Invoice Request naming = "INV - {Revenue Milestone Name}", QBO Customer IDs loaded. Realm ID pending. |
 | 0.6 | 2026-03-31 | Bernard + Claude | All open questions resolved. QBO Realm ID = 9130354334258356. Phase 1 unblocked — ready for Make.com scenario build. |
+| 0.7 | 2026-03-31 | Bernard + Claude | Make.com scenario created (ID: 4590134): Custom Webhook → QBO CreateInvoice → WebhookRespond. Webhook URL live. QBO OAuth connection pending user auth. |
 
 ---
 
