@@ -1,5 +1,13 @@
 # Fibery → QuickBooks Online Invoice Integration — PRD
 
+## Change Log
+
+| Version | Date | Author | Changes |
+|---|---|---|---|
+| 0.1 | 2026-03-31 | Bernard + Claude | Initial draft — architecture, data mapping, schema changes, user flow, phased implementation plan, open questions |
+
+---
+
 ## 1. Overview
 
 Enable users to create a QuickBooks Online (QBO) invoice directly from a **Revenue Item** (Revenue Milestone) in Fibery's Agreement Management space by clicking a Button. The button triggers a JavaScript automation that sends the relevant data to QBO via a Make.com webhook, which handles OAuth and invoice creation.
