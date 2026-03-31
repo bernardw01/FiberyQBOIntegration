@@ -5,6 +5,7 @@
 | Version | Date | Author | Changes |
 |---|---|---|---|
 | 0.1 | 2026-03-31 | Bernard + Claude | Initial draft — architecture, data mapping, schema changes, user flow, phased implementation plan, open questions |
+| 0.2 | 2026-03-31 | Bernard + Claude | Resolved all Section 11 open questions; added Decisions section; updated schema (fields created in Fibery); Invoice Request entity now part of core flow; updated user flow and requirements |
 
 ---
 
@@ -56,13 +57,12 @@ Currently, when a Revenue Milestone is ready to be invoiced, users must manually
 | `Revenue Item.Name` | Revenue Item (formula) | `Line[0].Description` prefix | Full context: "Agreement - Milestone" |
 | `Agreement.Contact.Email` | Contact via Agreement | `BillEmail` | Invoice delivery email |
 
-### Open Questions — Data Mapping
-- [ ] **QBO Customer matching**: How should we match Fibery `Companies` to QBO Customers? By exact name? Should we store a `QBO Customer ID` on the Company entity?
-- [ ] **QBO Item/Service**: Does a specific QBO Item/Service need to be referenced on the line item, or is a generic "Consulting Services" line acceptable?
-- [ ] **Tax handling**: Should the invoice include tax? If so, which QBO tax code?
-- [ ] **Payment terms**: What Net terms (Net 30, Net 60, etc.) should be set? Per-agreement or global default?
-- [ ] **Invoice numbering**: Let QBO auto-number, or derive from Fibery public-id?
-- [ ] **Multiple line items**: Should one invoice support multiple Revenue Items, or is it always 1:1?
+### Resolved Data Mapping Decisions
+- **QBO Customer matching**: Match by `QBO Customer ID` stored on the Fibery Company entity. User will manually populate IDs from QBO. Field is required for invoicing.
+- **QBO Item/Service**: Use a generic QBO Item/Service. The line item description will reflect the Revenue Item Name (formula: "Agreement - Milestone Title").
+- **Tax & Payment Terms**: Use QBO global defaults — no per-agreement configuration needed.
+- **Invoice numbering**: Let QBO auto-number.
+- **Multiple line items**: 1:1 — each Revenue Item creates one invoice with one line item.
 
 ## 6. User Flow
 
@@ -70,13 +70,15 @@ Currently, when a Revenue Milestone is ready to be invoiced, users must manually
 1. User navigates to a Revenue Item in Fibery
 2. User clicks **"Create QBO Invoice"** button
 3. Fibery JS automation:
-   a. Validates required fields are populated (Customer, Target Amount, etc.)
-   b. Collects data from Revenue Item + related Agreement + Company
+   a. Validates required fields are populated (Customer, QBO Customer ID, Target Amount, etc.)
+   b. Collects data from Revenue Item + related Agreement + Company + Contact
    c. POSTs JSON payload to Make.com webhook URL
-   d. Receives response (success + QBO Invoice ID)
-   e. Updates Revenue Item workflow state → **"Invoiced"**
-   f. Optionally stores QBO Invoice ID/URL on the Revenue Item or Invoice Request
-4. User sees confirmation (state change + optional toast/notification)
+   d. Receives response (success + QBO Invoice ID + Invoice Number)
+   e. **Creates an Invoice Request** entity linked to the Agreement and Revenue Item
+   f. Stores QBO Invoice Number and QBO Invoice Status on the Invoice Request
+   g. Stores QBO Invoice ID and QBO Invoice URL on the Revenue Item
+   h. Updates Revenue Item workflow state → **"Invoice Requested"** → **"Invoiced"**
+4. User sees confirmation (state change on Revenue Item + linked Invoice Request created)
 
 ### Error Scenarios
 - **Missing required fields** → Button shows validation error before sending
@@ -84,16 +86,20 @@ Currently, when a Revenue Milestone is ready to be invoiced, users must manually
 - **Duplicate invoice** → Guard against double-click / re-invoicing already-invoiced items
 - **Make.com / QBO down** → Graceful error message; user can retry
 
-## 7. Fibery Schema Changes Needed
+## 7. Fibery Schema Changes
 
-| Change | Database | Field | Type | Purpose |
+All fields below have been **created in Fibery** as of v0.2.
+
+| Status | Database | Field | Type | Purpose |
 |---|---|---|---|---|
-| Add | Companies | `QBO Customer ID` | Text | Store QBO Customer reference for matching |
-| Add | Revenue Item | `QBO Invoice ID` | Text | Store created QBO Invoice ID |
-| Add | Revenue Item | `QBO Invoice URL` | Text (URL) | Deep link to invoice in QBO |
-| Add | Revenue Item | `Invoice Error` | Text | Store last error message if creation failed |
-| Existing | Revenue Item | `workflow/state` | Workflow | Use existing "Invoiced" state |
-| Button | Revenue Item | "Create QBO Invoice" | Button | Triggers the JS automation |
+| DONE | Companies | `QBO Customer ID` | Text | QBO Customer ID — user-populated from QBO |
+| DONE | Revenue Item | `QBO Invoice ID` | Text | QBO Invoice ID returned after creation |
+| DONE | Revenue Item | `QBO Invoice URL` | Text (URL) | Deep link to invoice in QBO |
+| DONE | Revenue Item | `Invoice Error` | Text | Last error message if creation failed |
+| DONE | Invoice Requests | `QBO Invoice Number` | Text | Invoice number from QBO |
+| DONE | Invoice Requests | `QBO Invoice Status` | Text | Current invoice status from QBO |
+| Existing | Revenue Item | `workflow/state` | Workflow | Use existing "Invoiced" / "Invoice Requested" states |
+| TODO | Revenue Item | "Create QBO Invoice" | Button | Triggers the JS automation |
 
 ## 8. Make.com Scenario Design
 
@@ -104,16 +110,15 @@ Currently, when a Revenue Milestone is ready to be invoiced, users must manually
 ### Scenario Steps
 1. **Webhook** — receive payload
 2. **Validate payload** — check required fields present
-3. **Lookup QBO Customer** — by `QBO Customer ID` or by name
-4. **(Optional) Create QBO Customer** — if not found and flag allows it
-5. **Create QBO Invoice** — map fields from payload
-6. **Return response** — QBO Invoice ID + URL back to Fibery webhook response
+3. **Create QBO Invoice** — using `QBO Customer ID` from payload, generic line item, global default terms/tax
+4. **Return response** — QBO Invoice ID, Invoice Number, Invoice URL, and status back to Fibery
 
 ### Payload Schema (Fibery → Make.com)
 
 ```json
 {
   "fiberyRevenueItemId": "uuid",
+  "fiberyAgreementId": "uuid",
   "customerName": "Acme Corp",
   "qboCustomerId": "123",
   "milestoneTitle": "Phase 1 Delivery",
@@ -123,6 +128,19 @@ Currently, when a Revenue Milestone is ready to be invoiced, users must manually
   "agreementName": "Acme Consulting",
   "contactEmail": "billing@acme.com",
   "memo": "Agreement: Acme Consulting | Milestone: Phase 1 Delivery"
+}
+```
+
+### Response Schema (Make.com → Fibery)
+
+```json
+{
+  "success": true,
+  "qboInvoiceId": "456",
+  "qboInvoiceNumber": "INV-1042",
+  "qboInvoiceUrl": "https://app.qbo.intuit.com/...",
+  "qboInvoiceStatus": "Open",
+  "error": null
 }
 ```
 
@@ -144,18 +162,20 @@ Currently, when a Revenue Milestone is ready to be invoiced, users must manually
 
 ### Must Have (P0)
 - [ ] Button on Revenue Item triggers invoice creation in QBO
-- [ ] Invoice populated with: Customer, Amount, Description, Date
+- [ ] Invoice populated with: Customer (by QBO Customer ID), Amount, Description (Revenue Item Name), Date
 - [ ] Revenue Item state updated to "Invoiced" on success
 - [ ] QBO Invoice ID stored on Revenue Item
-- [ ] Validation prevents invoicing without required data
+- [ ] **Invoice Request entity created** with QBO Invoice Number and QBO Invoice Status
+- [ ] Invoice Request linked to Agreement and Revenue Item
+- [ ] Validation prevents invoicing without required data (QBO Customer ID, Target Amount)
 - [ ] Guard against duplicate invoice creation (don't re-invoice "Invoiced" items)
+- [ ] QBO uses global default tax and payment terms
 
 ### Should Have (P1)
-- [ ] QBO Customer ID stored on Fibery Company for reliable matching
-- [ ] Error message displayed/stored when creation fails
-- [ ] QBO Invoice URL stored for quick navigation
-- [ ] Invoice Request entity created/linked automatically
+- [ ] Error message stored on Revenue Item `Invoice Error` field when creation fails
+- [ ] QBO Invoice URL stored on Revenue Item for quick navigation
 - [ ] Contact email passed as BillEmail on the QBO invoice
+- [ ] Agreement name included in invoice memo/private note
 
 ### Nice to Have (P2)
 - [ ] Batch invoicing: select multiple Revenue Items → create multiple invoices
@@ -164,36 +184,46 @@ Currently, when a Revenue Milestone is ready to be invoiced, users must manually
 - [ ] Slack notification on successful invoice creation
 - [ ] Support for multiple line items per invoice (multiple Revenue Items → one invoice)
 
-## 11. Open Questions & Decisions Needed
+## 11. Decisions Log
 
-1. **QBO Customer Matching Strategy** — exact name match, stored ID, or both?
-2. **QBO Item/Service for line items** — specific product/service, or generic?
-3. **Tax & Payment Terms** — defaults vs. per-agreement configuration?
-4. **Invoice Request workflow** — should clicking the button also create/update an Invoice Request entity, or is that a separate concern?
-5. **Who can click the button?** — any Fibery user, or restricted to certain roles?
-6. **QBO Sandbox vs. Production** — do we have a QBO sandbox for testing?
-7. **Make.com plan limits** — any concerns about operations/month quota?
+| # | Question | Decision | Date |
+|---|---|---|---|
+| 1 | QBO Customer Matching Strategy | Match by `QBO Customer ID` stored on Fibery Company. User will manually populate IDs from QBO. | 2026-03-31 |
+| 2 | QBO Item/Service for line items | Generic QBO Item/Service. Line description = Revenue Item Name (Agreement - Milestone Title). | 2026-03-31 |
+| 3 | Tax & Payment Terms | Use QBO global defaults. No per-agreement configuration. | 2026-03-31 |
+| 4 | Invoice Request workflow | Button creates an Invoice Request entity linked to Agreement & Revenue Item. Stores QBO Invoice Number and Status. | 2026-03-31 |
+| 5 | Who can click the button? | Any authorized Fibery user. No additional role restrictions. | 2026-03-31 |
+| 6 | QBO Sandbox for testing? | No sandbox available. Will test against production QBO with care. | 2026-03-31 |
+| 7 | Make.com plan limits | No concerns — sufficient quota. | 2026-03-31 |
 
-## 12. Implementation Phases
+## 12. Remaining Open Questions
 
-### Phase 1: Foundation
-- Add new fields to Fibery schema (QBO Customer ID, QBO Invoice ID, etc.)
-- Set up Make.com scenario with QBO connection
-- Build & test webhook payload/response contract
+- [ ] **Generic QBO Item/Service name** — what is the exact name/ID of the generic service item in QBO to use on line items?
+- [ ] **QBO Company ID** — what is the QBO Company ID (realm ID) for API calls?
+- [ ] **Invoice Request naming convention** — how should the auto-created Invoice Request be named? (e.g., "INV-1042 - Acme Consulting - Phase 1")
+
+## 13. Implementation Phases
+
+### Phase 1: Foundation (DONE)
+- [x] Add new fields to Fibery schema (QBO Customer ID, QBO Invoice ID, QBO Invoice URL, Invoice Error, QBO Invoice Number, QBO Invoice Status)
+- [ ] Populate QBO Customer IDs on existing Fibery Companies
+- [ ] Set up Make.com scenario with QBO connection
+- [ ] Build & test webhook payload/response contract
 
 ### Phase 2: Core Integration
-- Write Fibery JS automation (button script)
-- Wire up Make.com scenario to create QBO invoice
-- Test end-to-end with QBO sandbox
+- [ ] Write Fibery JS automation (button script)
+- [ ] Wire up Make.com scenario to create QBO invoice
+- [ ] Create Invoice Request entity in automation flow
+- [ ] Test end-to-end against production QBO
 
 ### Phase 3: Polish & Guardrails
-- Add validation & error handling
-- Duplicate prevention logic
-- Store QBO Invoice URL, update workflow states
-- User testing & feedback
+- [ ] Add validation & error handling
+- [ ] Duplicate prevention logic
+- [ ] Store QBO Invoice URL, update workflow states
+- [ ] User testing & feedback
 
 ### Phase 4: Enhancements (P1/P2 items)
-- Batch invoicing
-- Auto-create QBO customers
-- Slack notifications
-- Invoice PDF attachment
+- [ ] Batch invoicing
+- [ ] Auto-create QBO customers
+- [ ] Slack notifications
+- [ ] Invoice PDF attachment
