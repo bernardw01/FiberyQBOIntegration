@@ -6,6 +6,7 @@
 |---|---|---|---|
 | 0.1 | 2026-03-31 | Bernard + Claude | Initial draft — architecture, data mapping, schema changes, user flow, phased implementation plan, open questions |
 | 0.2 | 2026-03-31 | Bernard + Claude | Resolved all Section 11 open questions; added Decisions section; updated schema (fields created in Fibery); Invoice Request entity now part of core flow; updated user flow and requirements |
+| 0.3 | 2026-03-31 | Bernard + Claude | Added Mermaid sequence diagram showing full interaction flow: validation, Make.com webhook, QBO invoice creation, Fibery updates (success & error paths) |
 
 ---
 
@@ -42,6 +43,52 @@ Currently, when a Revenue Milestone is ready to be invoiced, users must manually
 
 ### Alternative considered: Direct QBO API from Fibery JS
 - Rejected: Fibery's JS automation environment cannot securely store/refresh OAuth tokens, and has limited HTTP capabilities for the full QBO auth flow
+
+### Sequence Diagram
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant FiberyUI as Fibery UI<br/>(Revenue Item)
+    participant FiberyJS as Fibery JS<br/>Automation
+    participant FiberyAPI as Fibery API
+    participant Make as Make.com<br/>Webhook Scenario
+    participant QBO as QuickBooks Online
+
+    User->>FiberyUI: Clicks "Create QBO Invoice" button
+
+    rect rgb(240, 248, 255)
+        Note over FiberyJS: Validation & Data Collection
+        FiberyJS->>FiberyAPI: Fetch Revenue Item + Agreement + Company + Contact
+        FiberyAPI-->>FiberyJS: Entity data (including QBO Customer ID)
+        FiberyJS->>FiberyJS: Validate required fields<br/>(QBO Customer ID, Target Amount, not already invoiced)
+        alt Validation fails
+            FiberyJS-->>User: Error message (missing fields or already invoiced)
+        end
+    end
+
+    rect rgb(240, 255, 240)
+        Note over Make: Invoice Creation
+        FiberyJS->>Make: HTTP POST webhook<br/>{qboCustomerId, amount, description, date, email, memo}
+        Make->>Make: Validate payload
+        Make->>QBO: Create Invoice API call<br/>(OAuth handled by Make.com)
+        QBO-->>Make: Invoice created<br/>{invoiceId, invoiceNumber, invoiceUrl, status}
+        Make-->>FiberyJS: Response<br/>{success, qboInvoiceId, qboInvoiceNumber, qboInvoiceUrl, status}
+    end
+
+    rect rgb(255, 248, 240)
+        Note over FiberyJS: Post-Creation Updates
+        alt Success
+            FiberyJS->>FiberyAPI: Update Revenue Item<br/>(QBO Invoice ID, QBO Invoice URL, state → "Invoiced")
+            FiberyJS->>FiberyAPI: Create Invoice Request entity<br/>(QBO Invoice Number, QBO Invoice Status,<br/>link to Agreement + Revenue Item)
+            FiberyAPI-->>FiberyJS: Confirmation
+            FiberyJS-->>User: Success — state updated, Invoice Request created
+        else Failure
+            FiberyJS->>FiberyAPI: Update Revenue Item<br/>(Invoice Error = error message)
+            FiberyJS-->>User: Error message displayed
+        end
+    end
+```
 
 ## 5. Data Mapping — Fibery → QBO Invoice
 
