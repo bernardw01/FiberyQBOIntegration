@@ -24,3 +24,4 @@ When a Revenue Milestone (Revenue Item) in Fibery is ready to be invoiced, a use
 ## Documentation
 
 - [Product Requirements Document (PRD)](FiberyQBOIntegration-PRD.md) — architecture, data mapping, decisions, sequence diagrams, and implementation plan
+- [Implementation Plan](IMPLEMENTATION-PLAN.md) — task-level breakdown with status, ownership, PRD traceability, dependency graph, and progress tracking
