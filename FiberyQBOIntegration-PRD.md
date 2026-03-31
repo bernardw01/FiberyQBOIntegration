@@ -9,6 +9,7 @@
 | 0.3 | 2026-03-31 | Bernard + Claude | Added Mermaid sequence diagram showing full interaction flow: validation, Make.com webhook, QBO invoice creation, Fibery updates (success & error paths) |
 | 0.4 | 2026-03-31 | Bernard + Claude | Added [Implementation Plan](IMPLEMENTATION-PLAN.md) with task-level traceability to PRD sections, versions, and priorities; dependency graph; progress tracking |
 | 0.5 | 2026-03-31 | Bernard + Claude | Resolved 3 of 4 open questions: QBO Item ID = 3, Invoice Request naming = "INV - {Revenue Milestone Name}", QBO Customer IDs loaded. Realm ID pending. |
+| 0.6 | 2026-03-31 | Bernard + Claude | All open questions resolved. QBO Realm ID = 9130354334258356. Phase 1 unblocked — ready for Make.com scenario build. |
 
 ---
 
@@ -247,11 +248,12 @@ All fields below have been **created in Fibery** as of v0.2.
 | 8 | Generic QBO Item/Service | Use QBO Item ID `3`. | 2026-03-31 |
 | 9 | Invoice Request naming | Prefix "INV" + Revenue Milestone Name (e.g., "INV - Acme Consulting - Phase 1 Delivery"). | 2026-03-31 |
 | 10 | QBO Customer IDs | Loaded into Fibery Company entities by user. | 2026-03-31 |
+| 11 | QBO Realm ID | `9130354334258356` | 2026-03-31 |
 
 ## 12. Remaining Open Questions
 
 - [x] **Generic QBO Item/Service name** — **Resolved**: Use QBO Item ID `3`
-- [ ] **QBO Company ID** — what is the QBO Company ID (realm ID) for API calls? *(User locating in QBO)*
+- [x] **QBO Company ID** — **Resolved**: Realm ID `9130354334258356`
 - [x] **Invoice Request naming convention** — **Resolved**: Prefix "INV" + Revenue Milestone Name (e.g., "INV - Acme Consulting - Phase 1 Delivery")
 
 ## 13. Implementation Phases
