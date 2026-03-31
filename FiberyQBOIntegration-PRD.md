@@ -8,6 +8,7 @@
 | 0.2 | 2026-03-31 | Bernard + Claude | Resolved all Section 11 open questions; added Decisions section; updated schema (fields created in Fibery); Invoice Request entity now part of core flow; updated user flow and requirements |
 | 0.3 | 2026-03-31 | Bernard + Claude | Added Mermaid sequence diagram showing full interaction flow: validation, Make.com webhook, QBO invoice creation, Fibery updates (success & error paths) |
 | 0.4 | 2026-03-31 | Bernard + Claude | Added [Implementation Plan](IMPLEMENTATION-PLAN.md) with task-level traceability to PRD sections, versions, and priorities; dependency graph; progress tracking |
+| 0.5 | 2026-03-31 | Bernard + Claude | Resolved 3 of 4 open questions: QBO Item ID = 3, Invoice Request naming = "INV - {Revenue Milestone Name}", QBO Customer IDs loaded. Realm ID pending. |
 
 ---
 
@@ -243,12 +244,15 @@ All fields below have been **created in Fibery** as of v0.2.
 | 5 | Who can click the button? | Any authorized Fibery user. No additional role restrictions. | 2026-03-31 |
 | 6 | QBO Sandbox for testing? | No sandbox available. Will test against production QBO with care. | 2026-03-31 |
 | 7 | Make.com plan limits | No concerns — sufficient quota. | 2026-03-31 |
+| 8 | Generic QBO Item/Service | Use QBO Item ID `3`. | 2026-03-31 |
+| 9 | Invoice Request naming | Prefix "INV" + Revenue Milestone Name (e.g., "INV - Acme Consulting - Phase 1 Delivery"). | 2026-03-31 |
+| 10 | QBO Customer IDs | Loaded into Fibery Company entities by user. | 2026-03-31 |
 
 ## 12. Remaining Open Questions
 
-- [ ] **Generic QBO Item/Service name** — what is the exact name/ID of the generic service item in QBO to use on line items?
-- [ ] **QBO Company ID** — what is the QBO Company ID (realm ID) for API calls?
-- [ ] **Invoice Request naming convention** — how should the auto-created Invoice Request be named? (e.g., "INV-1042 - Acme Consulting - Phase 1")
+- [x] **Generic QBO Item/Service name** — **Resolved**: Use QBO Item ID `3`
+- [ ] **QBO Company ID** — what is the QBO Company ID (realm ID) for API calls? *(User locating in QBO)*
+- [x] **Invoice Request naming convention** — **Resolved**: Prefix "INV" + Revenue Milestone Name (e.g., "INV - Acme Consulting - Phase 1 Delivery")
 
 ## 13. Implementation Phases
 

@@ -26,19 +26,19 @@
 | 1.4 | Create `Invoice Error` field on Revenue Item | :white_check_mark: | Claude | 7. Schema Changes | v0.2 | P1 | Created in Fibery 2026-03-31 |
 | 1.5 | Create `QBO Invoice Number` field on Invoice Requests | :white_check_mark: | Claude | 7. Schema Changes | v0.2 | P0 | Created in Fibery 2026-03-31 |
 | 1.6 | Create `QBO Invoice Status` field on Invoice Requests | :white_check_mark: | Claude | 7. Schema Changes | v0.2 | P0 | Created in Fibery 2026-03-31 |
-| 1.7 | Populate QBO Customer IDs on existing Fibery Companies | :bust_in_silhouette: | Bernard | 5. Data Mapping | v0.2 | P0 | User must look up IDs from QBO and enter them in Fibery |
-| 1.8 | Resolve: Generic QBO Item/Service name/ID | :clipboard: | Bernard | 12. Open Questions | v0.2 | P0 | Needed before Make.com scenario can map line items |
-| 1.9 | Resolve: QBO Company ID (realm ID) | :clipboard: | Bernard | 12. Open Questions | v0.2 | P0 | Needed for Make.com QBO connection |
-| 1.10 | Resolve: Invoice Request naming convention | :clipboard: | Bernard | 12. Open Questions | v0.2 | P0 | Needed before JS automation can create Invoice Requests |
-| 1.11 | Create Make.com scenario with QBO connection | :clipboard: | Claude | 8. Make.com Scenario | v0.1 | P0 | Depends on 1.8, 1.9 |
+| 1.7 | Populate QBO Customer IDs on existing Fibery Companies | :white_check_mark: | Bernard | 5. Data Mapping | v0.2 | P0 | Completed 2026-03-31 |
+| 1.8 | Resolve: Generic QBO Item/Service name/ID | :white_check_mark: | Bernard | 12. Open Questions | v0.2 | P0 | Resolved: QBO Item ID `3` |
+| 1.9 | Resolve: QBO Company ID (realm ID) | :bust_in_silhouette: | Bernard | 12. Open Questions | v0.2 | P0 | User locating in QBO — found in URL `companyId` param |
+| 1.10 | Resolve: Invoice Request naming convention | :white_check_mark: | Bernard | 12. Open Questions | v0.2 | P0 | Resolved: "INV - {Revenue Milestone Name}" |
+| 1.11 | Create Make.com scenario with QBO connection | :clipboard: | Claude | 8. Make.com Scenario | v0.1 | P0 | Depends on 1.9 |
 | 1.12 | Configure Make.com webhook endpoint | :clipboard: | Claude | 8. Make.com Scenario | v0.1 | P0 | Part of 1.11 |
 | 1.13 | Define & test webhook payload/response contract | :clipboard: | Claude | 8. Payload/Response Schema | v0.2 | P0 | Test with sample POST before wiring to Fibery |
 | 1.14 | Initialize GitHub repo + PRD | :white_check_mark: | Claude | — | v0.1 | — | github.com/bernardw01/FiberyQBOIntegration |
 | 1.15 | Add README | :white_check_mark: | Claude | — | — | — | Links to PRD |
 
 ### Phase 1 Summary
-- **Complete**: 8 of 15 tasks
-- **Blocked on user input**: 3 open questions (1.8, 1.9, 1.10) + QBO Customer ID population (1.7)
+- **Complete**: 11 of 15 tasks
+- **Blocked on user input**: 1 remaining — QBO Realm ID (1.9)
 - **Ready to start when unblocked**: Make.com scenario setup (1.11–1.13)
 
 ---
@@ -109,10 +109,10 @@
 graph TD
     subgraph "Phase 1: Foundation"
         A1[1.1-1.6 Schema Fields ✅]
-        A7[1.7 Populate QBO Customer IDs 👤]
-        A8[1.8 Resolve QBO Item/Service 👤]
+        A7[1.7 Populate QBO Customer IDs ✅]
+        A8[1.8 QBO Item ID = 3 ✅]
         A9[1.9 Resolve QBO Realm ID 👤]
-        A10[1.10 Resolve Invoice Request Naming 👤]
+        A10[1.10 Invoice Request Naming ✅]
         A11[1.11 Make.com Scenario Setup]
         A13[1.13 Test Webhook Contract]
     end
@@ -158,17 +158,22 @@ graph TD
 
 | Phase | Total Tasks | Complete | In Progress | Blocked | Not Started |
 |---|---|---|---|---|---|
-| Phase 1: Foundation | 15 | 8 | 0 | 4 (user input) | 3 |
+| Phase 1: Foundation | 15 | 11 | 0 | 1 (user input) | 3 |
 | Phase 2: Core Integration | 11 | 0 | 0 | 0 | 11 |
 | Phase 3: Polish & Guardrails | 9 | 0 | 0 | 0 | 9 |
 | Phase 4: Enhancements | 5 | 0 | 0 | 0 | 5 |
-| **Total** | **40** | **8** | **0** | **4** | **28** |
+| **Total** | **40** | **11** | **0** | **1** | **28** |
 
 ### Current Blockers
 
 | Blocker | Blocks | Action Needed |
 |---|---|---|
-| QBO Customer IDs not populated | Phase 2 (data collection) | Bernard: look up Customer IDs in QBO, enter on Fibery Companies |
-| Generic QBO Item/Service unknown | Make.com scenario (line item mapping) | Bernard: identify the item name or ID in QBO |
-| QBO Realm ID unknown | Make.com QBO connection | Bernard: find realm ID in QBO account settings |
-| Invoice Request naming convention | JS automation (entity creation) | Bernard + Claude: decide on naming format |
+| QBO Realm ID unknown | Make.com QBO connection (1.11) | Bernard: find in QBO URL → `companyId` parameter |
+
+### Recently Resolved
+
+| Item | Resolution | Date |
+|---|---|---|
+| QBO Customer IDs | Loaded into Fibery Company entities | 2026-03-31 |
+| Generic QBO Item/Service | Item ID `3` | 2026-03-31 |
+| Invoice Request naming | "INV - {Revenue Milestone Name}" | 2026-03-31 |
