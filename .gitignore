@@ -1,0 +1,9 @@
+# Environment — contains secrets, never commit
+.env
+.env.local
+.env.*.local
+
+# Test output
+test/logs/
+test-results/
+*.test-output.json
